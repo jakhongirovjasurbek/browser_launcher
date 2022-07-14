@@ -20,32 +20,35 @@ class FileLaunchers extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('File Browser'),
-      ),
-      body: BlocConsumer<FileLauncherBloc, FileLauncherState>(
-        listener: (context, state) {
-          if (state.type == LauncherFileTypes.other) {
-            showOptionDialog(context);
-          }
-        },
-        builder: (context, state) {
-          if (state.status == FormzStatus.submissionInProgress) {
-            return const Center(child: CupertinoActivityIndicator());
-          } else if (state.status == FormzStatus.submissionSuccess) {
-            if (state.type == LauncherFileTypes.image) {
-              return ImageOpenerScreen(path: state.filePath);
-            } else if (state.type == LauncherFileTypes.video) {
-              return VideoPlayerScreem(path: state.filePath);
-            } else if (state.type == LauncherFileTypes.pdf) {
-              return PdfReaderScreen(path: state.filePath);
-            } else {
-              return const UnknownFileHandlerScreen();
+    return BlocProvider(
+      create: (context) => FileLauncherBloc(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('File Browser'),
+        ),
+        body: BlocConsumer<FileLauncherBloc, FileLauncherState>(
+          listener: (context, state) {
+            if (state.type == LauncherFileTypes.other) {
+              showOptionDialog(context);
             }
-          }
-          return const SizedBox();
-        },
+          },
+          builder: (context, state) {
+            if (state.status == FormzStatus.submissionInProgress) {
+              return const Center(child: CupertinoActivityIndicator());
+            } else if (state.status == FormzStatus.submissionSuccess) {
+              if (state.type == LauncherFileTypes.image) {
+                return ImageOpenerScreen(path: state.filePath);
+              } else if (state.type == LauncherFileTypes.video) {
+                return VideoPlayerScreem(path: state.filePath);
+              } else if (state.type == LauncherFileTypes.pdf) {
+                return PdfReaderScreen(path: state.filePath);
+              } else {
+                return const UnknownFileHandlerScreen();
+              }
+            }
+            return const SizedBox();
+          },
+        ),
       ),
     );
   }
@@ -66,8 +69,8 @@ class FileLaunchers extends StatelessWidget {
           Row(
             children: [
               MaterialButton(
-                onPressed: () {
-                  OpenFile.open(filePath);
+                onPressed: () async {
+                  await OpenFile.open(filePath);
                 },
                 color: Colors.green,
                 child: Text(
