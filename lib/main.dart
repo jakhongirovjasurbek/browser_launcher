@@ -5,10 +5,7 @@ import 'package:browser_launcher/core/screens/splash_screen.dart';
 import 'package:browser_launcher/modules/browser/browser_screen.dart';
 import 'package:browser_launcher/modules/file_launchers/file_launchers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart' as path;
 
 void main() {
   runApp(const MyApp());

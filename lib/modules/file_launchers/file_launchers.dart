@@ -1,3 +1,4 @@
+import 'package:browser_launcher/core/widgets/popus/snackbars.dart';
 import 'package:browser_launcher/modules/file_launchers/core/bloc/file_launcher_bloc.dart';
 import 'package:browser_launcher/modules/file_launchers/core/models/launcher_file_types.dart';
 import 'package:browser_launcher/modules/file_launchers/features/image_opener/presentation/image_opener_screen.dart';
@@ -21,7 +22,14 @@ class FileLaunchers extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => FileLauncherBloc(),
+      create: (context) => FileLauncherBloc()
+        ..add(GetFileType(
+          filePath: filePath,
+          onSuccess: () {},
+          onFailure: (message) {
+            showErrorSnackBar(context, message: message);
+          },
+        )),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('File Browser'),
@@ -93,7 +101,7 @@ class FileLaunchers extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                 ),
-              )
+              ),
             ],
           ),
         ],

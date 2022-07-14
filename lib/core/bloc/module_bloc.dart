@@ -49,6 +49,7 @@ class ModuleBloc extends Bloc<ModuleEvent, ModuleState> {
                   break;
                 }
               }
+              debugPrint('Filepath: $newPath$correctPath');
               emit(
                 state.copyWith(
                   status: ModuleStatus.fileLauncher,
