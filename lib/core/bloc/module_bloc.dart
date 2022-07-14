@@ -7,6 +7,7 @@ import 'package:browser_launcher/core/repository/module_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
+import 'package:permission_handler/permission_handler.dart';
 part 'module_event.dart';
 part 'module_state.dart';
 
@@ -34,30 +35,41 @@ class ModuleBloc extends Bloc<ModuleEvent, ModuleState> {
           emit(state.copyWith(status: ModuleStatus.browser, filePath: ''));
         } else {
           try {
-            var correctPath = '';
-            if (Platform.isAndroid) {
-              correctPath = path.replaceAll('/document/primary:', '');
-            }
-            final base = await path_provider.getExternalStorageDirectories();
-            final folders = base?.first.path.split('/');
-            var newPath = '';
-            if (folders != null) {
-              for (final folderName in folders) {
-                if (folderName != 'Android') {
-                  newPath += '$folderName/';
-                } else {
-                  break;
-                }
+            if (!(await Permission.storage.isGranted)) {
+              final status = await Permission.storage.request();
+              if (status != PermissionStatus.granted) {
+                throw Exception('Permission is denied');
               }
-              debugPrint('Filepath: $newPath$correctPath');
-              emit(
-                state.copyWith(
-                  status: ModuleStatus.fileLauncher,
-                  filePath: '$newPath$correctPath',
-                ),
-              );
+            }
+
+            if (await Permission.storage.isGranted) {
+              var correctPath = '';
+              if (Platform.isAndroid) {
+                correctPath = path.replaceAll('/document/primary:', '');
+              }
+              final base = await path_provider.getExternalStorageDirectories();
+              final folders = base?.first.path.split('/');
+              var newPath = '';
+              if (folders != null) {
+                for (final folderName in folders) {
+                  if (folderName != 'Android') {
+                    newPath += '$folderName/';
+                  } else {
+                    break;
+                  }
+                }
+                debugPrint('Filepath: $newPath$correctPath');
+                emit(
+                  state.copyWith(
+                    status: ModuleStatus.fileLauncher,
+                    filePath: '$newPath$correctPath',
+                  ),
+                );
+              } else {
+                throw Exception('Folder cannot be found');
+              }
             } else {
-              throw Exception('Folder cannot be found');
+              throw Exception('Permission is denied');
             }
           } catch (e) {
             emit(state.copyWith(status: ModuleStatus.browser, filePath: ''));
