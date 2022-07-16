@@ -14,18 +14,41 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import kotlin.error
 import java.io.BufferedReader
+import android.Manifest
+import android.content.ContentUris
+import android.database.Cursor
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.DocumentsContract
+import android.provider.MediaStore
+import java.io.*
+import java.util.*
 
 class MainActivity: FlutterActivity() {
-    private val CHANNEL = "sample.flutter.dev/battery"
+    private val CHANNEL = "sample.flutter.dev/path"
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler {
             call, result -> if(call.method == "getFilePath"){
-              val filePath = getFilePath()
+              // val filePath = getFilePath()
+              var intent = getIntent()
+              if(intent != null){
+                val data = intent.getData()
+                if(data != null){
 
-              if(filePath != null && filePath != ""){
-                result.success(filePath)
+                  val filePath = getAbsolutePath(this.context,data)
+                  if(filePath != null){
+
+                    result.success(filePath)
+                } else {
+                  result.error("UNAVAILABLE", "File path not available", null)
+                }
+               
+                } else {
+                  result.error("UNAVAILABLE", "File path not available", null)
+                }
               } else {
                 result.error("UNAVAILABLE", "File path not available", null)
               }
@@ -55,8 +78,9 @@ class MainActivity: FlutterActivity() {
       return "Intent is set to null"
     } else {
       val data = intent.getData()
-      val filePath = data?.getPath()
-      return "$filePath"
+      return "$data"
+      // val filePath = data?.getPath()
+      // return "$filePath"
     }
   }
 
@@ -71,4 +95,83 @@ class MainActivity: FlutterActivity() {
     }
     return null
   }
+
+
+  private fun getAbsolutePath(context: Context, uri: Uri): String? {
+
+    val isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
+
+    // DocumentProvider
+    if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+        // ExternalStorageProvider
+        if ("com.android.externalstorage.documents" == uri.authority) {
+            val docId = DocumentsContract.getDocumentId(uri)
+            val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            val type = split[0]
+
+            if ("primary".equals(type, ignoreCase = true)) {
+                return Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+            }
+
+            // TODO handle non-primary volumes
+        } else if ("com.android.providers.downloads.documents" == uri.authority) {
+
+            val id = DocumentsContract.getDocumentId(uri)
+            val contentUri = ContentUris.withAppendedId(
+                    Uri.parse("content://downloads/public_downloads"), java.lang.Long.valueOf(id))
+
+            return getDataColumn(context, contentUri, null, null)
+        } else if ("com.android.providers.media.documents" == uri.authority) {
+            val docId = DocumentsContract.getDocumentId(uri)
+            val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            val type = split[0]
+
+            var contentUri: Uri? = null
+            when (type) {
+                "image" -> contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                "video" -> contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                "audio" -> contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+            }
+
+            if (contentUri == null) return null
+
+            val selection = "_id=?"
+            val selectionArgs = arrayOf(split[1])
+            return getDataColumn(context, contentUri, selection, selectionArgs)
+        }// MediaProvider
+        // DownloadsProvider
+    } else if ("content".equals(uri.scheme, ignoreCase = true)) {
+        return getDataColumn(context, uri, null, null)
+    }
+
+    return uri.path
+}
+private fun getDataColumn(context: Context, uri: Uri, selection: String?,
+                          selectionArgs: Array<String>?): String? {
+
+    if (uri.authority != null) {
+        val targetFile = File(context.cacheDir, "IMG_${Date().time}.png")
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            FileOutputStream(targetFile).use { fileOut ->
+                input.copyTo(fileOut)
+            }
+        }
+        return targetFile.path
+    }
+
+    var cursor: Cursor? = null
+    val column = "_data"
+    val projection = arrayOf(column)
+
+    try {
+        cursor = context.contentResolver.query(uri, projection, selection, selectionArgs, null)
+        if (cursor != null && cursor.moveToFirst()) {
+            val column_index = cursor.getColumnIndexOrThrow(column)
+            return cursor.getString(column_index)
+        }
+    } finally {
+        cursor?.close()
+    }
+    return null
+}
 }

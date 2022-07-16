@@ -45,24 +45,31 @@ class ModuleBloc extends Bloc<ModuleEvent, ModuleState> {
             if (await Permission.storage.isGranted) {
               var correctPath = '';
               if (Platform.isAndroid) {
-                correctPath = path.replaceAll('/document/primary:', '');
+              correctPath = path;
               }
               final base = await path_provider.getExternalStorageDirectories();
               final folders = base?.first.path.split('/');
               var newPath = '';
               if (folders != null) {
+                var i = 0;
                 for (final folderName in folders) {
                   if (folderName != 'Android') {
-                    newPath += '$folderName/';
+                    if (i == 0) {
+                      newPath += folderName;
+                      i++;
+                    } else {
+                      newPath += '/$folderName';
+                    }
                   } else {
                     break;
                   }
                 }
-                debugPrint('Filepath: $newPath$correctPath');
+                
                 emit(
                   state.copyWith(
                     status: ModuleStatus.fileLauncher,
-                    filePath: '$newPath$correctPath',
+                    // filePath: '$newPath$correctPath',
+                    filePath: correctPath
                   ),
                 );
               } else {

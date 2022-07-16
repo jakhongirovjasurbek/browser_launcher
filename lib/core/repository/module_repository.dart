@@ -1,11 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:browser_launcher/core/models/module_status/module_state.dart';
+import 'package:file_picker_writable/file_picker_writable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class ModuleRepository {
-  static const platform = MethodChannel('sample.flutter.dev/battery');
+  static const platform = MethodChannel('sample.flutter.dev/path');
   final _controller = StreamController<ModuleStatus>();
   Stream<ModuleStatus> get status async* {
     await Future.delayed(const Duration(milliseconds: 1500));
@@ -30,7 +32,14 @@ class ModuleRepository {
 
   Future<String?> getFilePath() async {
     try {
+      var fileInfo = '';
+      FilePickerState().registerUriHandler((uri) {
+        fileInfo = uri.toFilePath();
+        return false;
+      });
       final String result = await platform.invokeMethod('getFilePath');
+      print(result);
+      print(Uri.tryParse(result));
       debugPrint('Returning result: $result');
       if (result == 'null') {
         return null;
@@ -39,6 +48,8 @@ class ModuleRepository {
     } on PlatformException catch (e) {
       debugPrint('Error occured $e');
       throw Exception(e.message);
+    } catch (error) {
+      return 'Error occured: $error';
     }
   }
 }

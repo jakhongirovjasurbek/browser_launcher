@@ -32,7 +32,10 @@ class FileLaunchers extends StatelessWidget {
         )),
       child: Scaffold(
         appBar: AppBar(
-          title:  Text('File Browser. Url: $filePath'),
+          title: Text(
+            'File Browser. Url: $filePath',
+            maxLines: 3,
+          ),
         ),
         body: BlocConsumer<FileLauncherBloc, FileLauncherState>(
           listener: (context, state) {
