@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class PdfReaderScreen extends StatefulWidget {
   final String path;
@@ -17,11 +14,21 @@ class PdfReaderScreen extends StatefulWidget {
 class _PdfReaderScreenState extends State<PdfReaderScreen> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      height: double.maxFinite,
-      decoration: const BoxDecoration(),
-      child: SfPdfViewer.file(File(widget.path)),
+    return Align(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Oups.. \nLooks like we cannot open this file yet!\nFile path is: ${widget.path}',
+            style: Theme.of(context).textTheme.headline1!.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
+            textAlign: TextAlign.center,
+          )
+        ],
+      ),
     );
   }
 }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:browser_launcher/core/models/module_status/module_state.dart';
 import 'package:file_picker_writable/file_picker_writable.dart';
@@ -32,14 +31,10 @@ class ModuleRepository {
 
   Future<String?> getFilePath() async {
     try {
+      print('This is here');
       var fileInfo = '';
-      FilePickerState().registerUriHandler((uri) {
-        fileInfo = uri.toFilePath();
-        return false;
-      });
       final String result = await platform.invokeMethod('getFilePath');
-      print(result);
-      print(Uri.tryParse(result));
+      
       debugPrint('Returning result: $result');
       if (result == 'null') {
         return null;
@@ -49,7 +44,7 @@ class ModuleRepository {
       debugPrint('Error occured $e');
       throw Exception(e.message);
     } catch (error) {
-      return 'Error occured: $error';
+      return null;
     }
   }
 }

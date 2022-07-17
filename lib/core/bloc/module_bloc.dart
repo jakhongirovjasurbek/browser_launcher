@@ -45,7 +45,7 @@ class ModuleBloc extends Bloc<ModuleEvent, ModuleState> {
             if (await Permission.storage.isGranted) {
               var correctPath = '';
               if (Platform.isAndroid) {
-              correctPath = path;
+                correctPath = path;
               }
               final base = await path_provider.getExternalStorageDirectories();
               final folders = base?.first.path.split('/');
@@ -64,12 +64,13 @@ class ModuleBloc extends Bloc<ModuleEvent, ModuleState> {
                     break;
                   }
                 }
-                
+
+                correctPath = correctPath.split('0/')[1];
                 emit(
                   state.copyWith(
                     status: ModuleStatus.fileLauncher,
                     // filePath: '$newPath$correctPath',
-                    filePath: correctPath
+                    filePath: '$newPath/$correctPath',
                   ),
                 );
               } else {
@@ -88,6 +89,7 @@ class ModuleBloc extends Bloc<ModuleEvent, ModuleState> {
     });
     on<GetModuleStatus>((event, emit) async {
       try {
+        print('Always start with this event');
         await _repository.getModuleStatus();
       } catch (e) {
         event.onFailure('$e');

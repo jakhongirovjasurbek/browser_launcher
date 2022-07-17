@@ -25,11 +25,21 @@ class _VideoPlayerScreemState extends State<VideoPlayerScreem> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.maxFinite,
-      height: double.maxFinite,
-      decoration: const BoxDecoration(),
-      child: VideoPlayer(videoPlayerController),
+    return Align(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Oups.. \nLooks like we cannot open this file yet!\nFile path is: ${widget.path}',
+            style: Theme.of(context).textTheme.headline1!.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
+            textAlign: TextAlign.center,
+          )
+        ],
+      ),
     );
   }
 }

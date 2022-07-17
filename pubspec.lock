@@ -51,7 +51,7 @@ packages:
     source: hosted
     version: "1.16.0"
   convert:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: convert
       url: "https://pub.dartlang.org"
@@ -78,6 +78,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.5"
+  dio:
+    dependency: transitive
+    description:
+      name: dio
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.0.6"
   equatable:
     dependency: "direct main"
     description:
@@ -192,12 +199,19 @@ packages:
     source: hosted
     version: "2.0.0"
   logging:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: logging
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.2"
+  logging_appenders:
+    dependency: "direct main"
+    description:
+      name: logging_appenders
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   matcher:
     dependency: transitive
     description:
@@ -366,6 +380,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.1.0"
+  rxdart:
+    dependency: transitive
+    description:
+      name: rxdart
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.27.5"
+  simple_json_persistence:
+    dependency: "direct main"
+    description:
+      name: simple_json_persistence
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.0+2"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -392,6 +420,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0"
+  string_literal_finder_annotations:
+    dependency: transitive
+    description:
+      name: string_literal_finder_annotations
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   string_scanner:
     dependency: transitive
     description:

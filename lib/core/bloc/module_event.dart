@@ -20,7 +20,16 @@ class ModuleStatusChanged extends ModuleEvent {
   final ModuleStatus status;
 
   const ModuleStatusChanged({required this.status});
-  
+
   @override
   List<Object?> get props => [status];
+}
+
+class ModuleStateChangedOnIntent extends ModuleEvent {
+  final String fileUri;
+
+  const ModuleStateChangedOnIntent(this.fileUri);
+
+  @override
+  List<Object?> get props => [fileUri];
 }

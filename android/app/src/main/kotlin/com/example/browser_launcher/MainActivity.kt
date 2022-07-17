@@ -98,6 +98,12 @@ class MainActivity: FlutterActivity() {
 
 
   private fun getAbsolutePath(context: Context, uri: Uri): String? {
+    val context = this.context;
+
+    var intent = getIntent()
+    if(intent != null){
+      val uri = intent.getData()
+      if(uri != null){
 
     val isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
 
@@ -145,33 +151,29 @@ class MainActivity: FlutterActivity() {
     }
 
     return uri.path
+      } else {
+        return null
+      }
+    } else {
+      return null
+    }
+    
 }
-private fun getDataColumn(context: Context, uri: Uri, selection: String?,
-                          selectionArgs: Array<String>?): String? {
-
-    if (uri.authority != null) {
-        val targetFile = File(context.cacheDir, "IMG_${Date().time}.png")
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            FileOutputStream(targetFile).use { fileOut ->
-                input.copyTo(fileOut)
-            }
-        }
-        return targetFile.path
-    }
-
-    var cursor: Cursor? = null
-    val column = "_data"
-    val projection = arrayOf(column)
-
-    try {
-        cursor = context.contentResolver.query(uri, projection, selection, selectionArgs, null)
-        if (cursor != null && cursor.moveToFirst()) {
-            val column_index = cursor.getColumnIndexOrThrow(column)
-            return cursor.getString(column_index)
-        }
-    } finally {
-        cursor?.close()
-    }
-    return null
+fun getDataColumn(context: Context, uri: Uri?, selection: String?, selectionArgs: Array<String>?): String? {
+  var cursor: Cursor? = null
+  val column = "_data"
+  val projection = arrayOf(column)
+  try {
+      if(uri != null){
+        cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,null)
+      if (cursor != null && cursor.moveToFirst()) {
+          val column_index: Int = cursor.getColumnIndexOrThrow(column)
+          return cursor.getString(column_index)
+      }
+      }
+  } finally {
+      if (cursor != null) cursor.close()
+  }
+  return null
 }
 }
