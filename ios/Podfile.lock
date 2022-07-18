@@ -1,4 +1,6 @@
 PODS:
+  - file_picker_writable (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - open_file (0.0.1):
     - Flutter
@@ -14,6 +16,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - file_picker_writable (from `.symlinks/plugins/file_picker_writable/ios`)
   - Flutter (from `Flutter`)
   - open_file (from `.symlinks/plugins/open_file/ios`)
   - path_provider_ios (from `.symlinks/plugins/path_provider_ios/ios`)
@@ -23,6 +26,8 @@ DEPENDENCIES:
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/ios`)
 
 EXTERNAL SOURCES:
+  file_picker_writable:
+    :path: ".symlinks/plugins/file_picker_writable/ios"
   Flutter:
     :path: Flutter
   open_file:
@@ -39,6 +44,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/video_player_avfoundation/ios"
 
 SPEC CHECKSUMS:
+  file_picker_writable: 67959f5c516feb5121693a14eda63fcbe6cbb6dc
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   open_file: 02eb5cb6b21264bd3a696876f5afbfb7ca4f4b7d
   path_provider_ios: 14f3d2fd28c4fdb42f44e0f751d12861c43cee02
@@ -47,6 +53,6 @@ SPEC CHECKSUMS:
   url_launcher_ios: 839c58cdb4279282219f5e248c3321761ff3c4de
   video_player_avfoundation: e489aac24ef5cf7af82702979ed16f2a5ef84cff
 
-PODFILE CHECKSUM: 9e818d033e0f69531c381539dd86b85cd6b3da4f
+PODFILE CHECKSUM: fddaf55d8f4a0eb8553b68577267093dcf00b586
 
 COCOAPODS: 1.11.3

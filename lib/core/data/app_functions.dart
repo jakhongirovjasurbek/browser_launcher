@@ -51,7 +51,7 @@ class AppFunctions {
         }
         return baseUrl;
       } else if (Platform.isIOS) {
-        final base = await path_provider.getApplicationSupportDirectory();
+        final base = await path_provider.getApplicationDocumentsDirectory();
         return base.path;
       }
     } catch (e) {
