@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class UnknownFileHandlerScreen extends StatelessWidget {
@@ -13,14 +15,16 @@ class UnknownFileHandlerScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            'Oups.. \nLooks like we cannot open this file yet!\nFile path is: $path',
-            style: Theme.of(context).textTheme.headline1!.copyWith(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.red,
-                ),
-            textAlign: TextAlign.center,
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'Oups.. \nLooks like we cannot open this file yet!\nFile name is: ${path.split(Platform.pathSeparator).last}',
+              style: Theme.of(context).textTheme.headline1!.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+              textAlign: TextAlign.center,
+            ),
           )
         ],
       ),

@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:browser_launcher/core/widgets/popus/snackbars.dart';
 import 'package:browser_launcher/core/widgets/w_bottomsheet.dart';
 import 'package:browser_launcher/core/widgets/w_button.dart';
 import 'package:browser_launcher/modules/file_launchers/core/bloc/file_launcher_bloc.dart';
 import 'package:browser_launcher/modules/file_launchers/core/models/launcher_file_types.dart';
 import 'package:browser_launcher/modules/file_launchers/features/image_opener/presentation/image_opener_screen.dart';
+import 'package:browser_launcher/modules/file_launchers/features/rename_filename/presentation/bloc/file_renamer_bloc.dart';
 import 'package:browser_launcher/modules/file_launchers/features/rename_filename/presentation/rename_file.dart';
 import 'package:browser_launcher/modules/file_launchers/features/unknown_type_handler/presentation/unknown_file_handler_screen.dart';
 import 'package:browser_launcher/modules/file_launchers/features/video_player/presentation/video_player_screen.dart';
@@ -12,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:open_file/open_file.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'features/pdf_reader/presentation/pdf_reader_screen.dart';
 
@@ -39,33 +43,42 @@ class _FileLaunchersState extends State<FileLaunchers>
     });
   }
 
+  late FileRenamerBloc fileRenamerBloc;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    fileRenamerBloc = FileRenamerBloc();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+    fileRenamerBloc.close();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => FileLauncherBloc()
-        ..add(GetFileType(
-          filePath: widget.filePath,
-          onSuccess: () {},
-          onFailure: (message) {
-            showErrorSnackBar(context, message: message);
-          },
-        )),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => FileLauncherBloc()
+            ..add(GetFileType(
+              filePath: widget.filePath,
+              onSuccess: () {},
+              onFailure: (message) {
+                showErrorSnackBar(context, message: message);
+              },
+            )),
+        ),
+        BlocProvider.value(value: fileRenamerBloc),
+      ],
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          title: const Text('File Browser.'),
+          title: const Text('File Browser'),
         ),
         body: Column(
           children: [
@@ -73,7 +86,7 @@ class _FileLaunchersState extends State<FileLaunchers>
               child: BlocConsumer<FileLauncherBloc, FileLauncherState>(
                 listener: (context, state) {
                   if (state.type == LauncherFileTypes.other) {
-                    showOptionDialog(context);
+                    // showOptionDialog(context);
                   }
                 },
                 builder: (context, state) {
@@ -111,7 +124,10 @@ class _FileLaunchersState extends State<FileLaunchers>
                                 bottom:
                                     MediaQuery.of(context).viewInsets.bottom),
                             child: WBottomSheet(children: [
-                              RenameFile(fileName: widget.filePath),
+                              BlocProvider.value(
+                                value: fileRenamerBloc,
+                                child: RenameFile(fileName: widget.filePath),
+                              ),
                             ]),
                           ),
                         );
@@ -170,7 +186,8 @@ class _FileLaunchersState extends State<FileLaunchers>
                 child: MaterialButton(
                   onPressed: () async {
                     Navigator.pop(dialogContext);
-                    final result = await OpenFile.open(widget.filePath);
+                    final result =
+                        await OpenFile.open(File(widget.filePath).path);
                     if (result.type == ResultType.error ||
                         result.type == ResultType.fileNotFound ||
                         result.type == ResultType.noAppToOpen ||

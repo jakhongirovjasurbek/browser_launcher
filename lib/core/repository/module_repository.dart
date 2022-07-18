@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:browser_launcher/core/models/module_status/module_state.dart';
-import 'package:file_picker_writable/file_picker_writable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -31,8 +30,6 @@ class ModuleRepository {
 
   Future<String?> getFilePath() async {
     try {
-      print('This is here');
-      var fileInfo = '';
       final String result = await platform.invokeMethod('getFilePath');
       
       debugPrint('Returning result: $result');

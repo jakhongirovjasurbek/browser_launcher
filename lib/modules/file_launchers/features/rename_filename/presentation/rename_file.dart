@@ -1,9 +1,10 @@
-import 'dart:io';
-
+import 'package:browser_launcher/core/bloc/module_bloc.dart';
 import 'package:browser_launcher/core/widgets/popus/snackbars.dart';
 import 'package:browser_launcher/core/widgets/w_button.dart';
+import 'package:browser_launcher/modules/file_launchers/features/rename_filename/presentation/bloc/file_renamer_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart' as path;
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:formz/formz.dart';
 
 class RenameFile extends StatefulWidget {
   final String fileName;
@@ -49,47 +50,44 @@ class _RenameFileState extends State<RenameFile> {
           child: Row(
             children: [
               Expanded(
-                child: WButton(
-                  onTap: () async {
-                    try {
-                      var lastSeparator =
-                          widget.fileName.lastIndexOf(Platform.pathSeparator);
-                      var newPath =
-                          widget.fileName.substring(0, lastSeparator + 1) +
-                              controller.text.trim();
-                      final renamedFile =
-                          await File(widget.fileName).rename(newPath);
-                    } catch (e) {
-                      Navigator.of(context).pop();
-                      print('Error occured');
-                      showErrorSnackBar(
-                        context,
-                        message: 'Cannot rename. Error: $e',
-                      );
-                    }
-                    // var pathToAppDir = '';
-                    // final baseDir = await path.getExternalStorageDirectory();
-                    // if (baseDir != null) {
-                    //   for (final folderName
-                    //       in baseDir.path.split(Platform.pathSeparator)) {
-                    //     if (folderName != 'Android') {
-                    //       pathToAppDir += '/$folderName';
-                    //     } else {
-                    //       break;
-                    //     }
-                    //   }
-                    //   Directory appDir =
-                    //       await Directory('$pathToAppDir/BrowserLauncher')
-                    //           .create(recursive: false);
-                    // }
+                child: BlocBuilder<FileRenamerBloc, FileRenamerState>(
+                  builder: (context, state) {
+                    return WButton(
+                      loading: state.status == FormzStatus.submissionInProgress,
+                      onTap: () {
+                        context.read<FileRenamerBloc>().add(RenameFileUri(
+                              newUrl: controller.text.trim(),
+                              oldUrl: widget.fileName,
+                              onSuccess: (url) {
+                                context.read<ModuleBloc>().add(FilePathChanged(
+                                      name: url,
+                                      onError: (message) {
+                                        Navigator.of(context).pop();
+                                      },
+                                      onSuccess: () {},
+                                    ));
+                                showSuccessSnackBar(
+                                  context,
+                                  message: 'File has renamed successfully!',
+                                );
+                                Navigator.of(context).pop();
+                              },
+                              onFailure: (message) {
+                                Navigator.of(context).pop();
+                                showErrorSnackBar(context, message: message);
+                              },
+                            ));
+                      },
+                      text: 'Save',
+                      color: Colors.green,
+                      textStyle:
+                          Theme.of(context).textTheme.headline1!.copyWith(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                    );
                   },
-                  text: 'Save',
-                  color: Colors.green,
-                  textStyle: Theme.of(context).textTheme.headline1!.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
                 ),
               ),
               const SizedBox(width: 12),

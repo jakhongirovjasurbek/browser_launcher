@@ -33,3 +33,17 @@ class ModuleStateChangedOnIntent extends ModuleEvent {
   @override
   List<Object?> get props => [fileUri];
 }
+
+class FilePathChanged extends ModuleEvent {
+  final String name;
+  final VoidCallback onSuccess;
+  final ValueChanged<String> onError;
+
+  FilePathChanged({
+    required this.name,
+    required this.onSuccess,
+    required this.onError,
+  });
+  @override
+  List<Object?> get props => [];
+}

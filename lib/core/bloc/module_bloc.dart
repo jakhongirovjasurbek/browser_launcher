@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
+import 'package:browser_launcher/core/data/app_functions.dart';
 import 'package:browser_launcher/core/models/module_status/module_state.dart';
 import 'package:browser_launcher/core/repository/module_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart' as path_provider;
-import 'package:permission_handler/permission_handler.dart';
+
 part 'module_event.dart';
 part 'module_state.dart';
 
@@ -30,55 +30,22 @@ class ModuleBloc extends Bloc<ModuleEvent, ModuleState> {
     on<ModuleStatusChanged>((event, emit) async {
       if (event.status == ModuleStatus.fileLauncher) {
         final path = await _repository.getFilePath();
-        debugPrint('This is path: $path');
         if (path == null || path.isEmpty) {
           emit(state.copyWith(status: ModuleStatus.browser, filePath: ''));
         } else {
           try {
-            if (!(await Permission.storage.isGranted)) {
-              final status = await Permission.storage.request();
-              if (status != PermissionStatus.granted) {
-                throw Exception('Permission is denied');
-              }
-            }
-
-            if (await Permission.storage.isGranted) {
-              var correctPath = '';
-              if (Platform.isAndroid) {
-                correctPath = path;
-              }
-              final base = await path_provider.getExternalStorageDirectories();
-              final folders = base?.first.path.split('/');
-              var newPath = '';
-              if (folders != null) {
-                var i = 0;
-                for (final folderName in folders) {
-                  if (folderName != 'Android') {
-                    if (i == 0) {
-                      newPath += folderName;
-                      i++;
-                    } else {
-                      newPath += '/$folderName';
-                    }
-                  } else {
-                    break;
-                  }
-                }
-
-                correctPath = correctPath.split('0/')[1];
-                emit(
-                  state.copyWith(
-                    status: ModuleStatus.fileLauncher,
-                    // filePath: '$newPath$correctPath',
-                    filePath: '$newPath/$correctPath',
-                  ),
-                );
-              } else {
-                throw Exception('Folder cannot be found');
-              }
-            } else {
-              throw Exception('Permission is denied');
-            }
+            var correctPath = '';
+            await AppFunctions.checkStoragePermission();
+            final baseUrl = await AppFunctions.getBaseAppDirectoryUrl();
+            if (Platform.isAndroid) {
+              correctPath = path.split('0/')[1];
+            } else if (Platform.isIOS) {}
+            emit(
+              state.copyWith(
+                status: ModuleStatus.fileLauncher,
+                filePath: '$baseUrl/$correctPath',
+              ),
+            );
           } catch (e) {
             emit(state.copyWith(status: ModuleStatus.browser, filePath: ''));
           }
@@ -89,11 +56,21 @@ class ModuleBloc extends Bloc<ModuleEvent, ModuleState> {
     });
     on<GetModuleStatus>((event, emit) async {
       try {
-        print('Always start with this event');
+        // await AppFunctions.checkManageStoragePermission();
+        await AppFunctions.checkStoragePermission();
         await _repository.getModuleStatus();
       } catch (e) {
+        emit(state.copyWith(
+          status: ModuleStatus.accessDenied,
+          filePath: '',
+        ));
         event.onFailure('$e');
       }
+    });
+
+    on<FilePathChanged>((event, emit) {
+      emit(state.copyWith(filePath: event.name));
+      event.onSuccess();
     });
   }
 
