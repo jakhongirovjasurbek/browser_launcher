@@ -47,3 +47,12 @@ class FilePathChanged extends ModuleEvent {
   @override
   List<Object?> get props => [];
 }
+
+class ModuleStatusChangedOnShareIntent extends ModuleEvent {
+  final String path;
+
+  const ModuleStatusChangedOnShareIntent({required this.path});
+
+  @override
+  List<Object?> get props => [path];
+}

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:browser_launcher/core/data/app_functions.dart';
 import 'package:browser_launcher/core/widgets/popus/snackbars.dart';
 import 'package:browser_launcher/core/widgets/w_bottomsheet.dart';
 import 'package:browser_launcher/core/widgets/w_button.dart';
@@ -15,7 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:open_file/open_file.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import 'features/pdf_reader/presentation/pdf_reader_screen.dart';
 
@@ -32,15 +32,9 @@ class FileLaunchers extends StatefulWidget {
 
 class _FileLaunchersState extends State<FileLaunchers>
     with WidgetsBindingObserver {
-  AppLifecycleState? _notification;
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      print('Lifecycle has changed in file launcher');
-      // context.read<ModuleBloc>().add(
-      //       GetModuleStatus(onSuccess: () {}, onFailure: (_) {}),
-      //     );
-    });
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {});
   }
 
   late FileRenamerBloc fileRenamerBloc;
@@ -77,6 +71,12 @@ class _FileLaunchersState extends State<FileLaunchers>
       ],
       child: Scaffold(
         resizeToAvoidBottomInset: true,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            AppFunctions.createLocalNotification();
+          },
+          child: const Icon(Icons.notifications),
+        ),
         appBar: AppBar(
           title: const Text('File Browser'),
         ),
@@ -145,8 +145,16 @@ class _FileLaunchersState extends State<FileLaunchers>
                   const SizedBox(width: 12),
                   Expanded(
                     child: WButton(
-                      onTap: () {
-                        showOptionDialog(context);
+                      onTap: () async {
+                        final result =
+                            await OpenFile.open(File(widget.filePath).path);
+                        if (result.type == ResultType.error ||
+                            result.type == ResultType.fileNotFound ||
+                            result.type == ResultType.noAppToOpen ||
+                            result.type == ResultType.permissionDenied) {
+                          showErrorSnackBar(context, message: result.message);
+                        }
+                        // showOptionDialog(context);
                       },
                       text: 'Open file',
                       color: Colors.blue,
@@ -166,65 +174,58 @@ class _FileLaunchersState extends State<FileLaunchers>
       ),
     );
   }
-
-  void showOptionDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        content: Text(
-          'We could not recognize or open this file.\n Would you like to open it via native app features?',
-          style: Theme.of(context).textTheme.headline1!.copyWith(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          Row(
-            children: [
-              Expanded(
-                child: MaterialButton(
-                  onPressed: () async {
-                    Navigator.pop(dialogContext);
-                    final result =
-                        await OpenFile.open(File(widget.filePath).path);
-                    if (result.type == ResultType.error ||
-                        result.type == ResultType.fileNotFound ||
-                        result.type == ResultType.noAppToOpen ||
-                        result.type == ResultType.permissionDenied) {
-                      showErrorSnackBar(context, message: result.message);
-                    }
-                  },
-                  color: Colors.green,
-                  child: Text(
-                    'Yes',
-                    style: Theme.of(context).textTheme.headline1!.copyWith(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: MaterialButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  color: Colors.red,
-                  child: Text(
-                    'No',
-                    style: Theme.of(context).textTheme.headline1!.copyWith(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }
+
+//   void showOptionDialog(BuildContext context) {
+//     showDialog(
+//       context: context,
+//       builder: (dialogContext) => AlertDialog(
+//         content: Text(
+//           'Do you want to rename this file:\n',
+//           style: Theme.of(context).textTheme.headline1!.copyWith(
+//                 fontSize: 16,
+//                 fontWeight: FontWeight.w500,
+//               ),
+//           textAlign: TextAlign.center,
+//         ),
+//         actions: [
+//           Row(
+//             children: [
+//               Expanded(
+//                 child: MaterialButton(
+//                   onPressed: () async {
+//                     Navigator.pop(dialogContext);
+//                   },
+//                   color: Colors.green,
+//                   child: Text(
+//                     'Yes',
+//                     style: Theme.of(context).textTheme.headline1!.copyWith(
+//                           color: Colors.white,
+//                           fontSize: 16,
+//                           fontWeight: FontWeight.w500,
+//                         ),
+//                   ),
+//                 ),
+//               ),
+//               const SizedBox(width: 16),
+//               Expanded(
+//                 child: MaterialButton(
+//                   onPressed: () => Navigator.pop(dialogContext),
+//                   color: Colors.red,
+//                   child: Text(
+//                     'No',
+//                     style: Theme.of(context).textTheme.headline1!.copyWith(
+//                           color: Colors.white,
+//                           fontSize: 16,
+//                           fontWeight: FontWeight.w500,
+//                         ),
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }

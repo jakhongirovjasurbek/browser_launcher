@@ -1,6 +1,7 @@
 import 'package:browser_launcher/core/bloc/module_bloc.dart';
 import 'package:browser_launcher/core/widgets/popus/snackbars.dart';
 import 'package:browser_launcher/core/widgets/w_button.dart';
+import 'package:browser_launcher/modules/file_launchers/core/data/functions/functions.dart';
 import 'package:browser_launcher/modules/file_launchers/features/rename_filename/presentation/bloc/file_renamer_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -24,7 +25,7 @@ class _RenameFileState extends State<RenameFile> {
   void initState() {
     super.initState();
     controller = TextEditingController(
-      text: widget.fileName.split('/')[widget.fileName.split('/').length - 1],
+      text: LauncherFunctions.getFileName(absolutePath: widget.fileName),
     );
   }
 
@@ -40,10 +41,28 @@ class _RenameFileState extends State<RenameFile> {
                 fontWeight: FontWeight.w600,
               ),
         ),
-        TextField(
-          autofocus: true,
-          controller: controller,
-          onChanged: (value) {},
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                autofocus: true,
+                controller: controller,
+                onChanged: (value) {},
+              ),
+            ),
+            Container(
+              decoration: const BoxDecoration(),
+              child: Text(
+                'Extention: ${LauncherFunctions.getFileExtention(
+                  absolutePath: widget.fileName,
+                )}',
+                style: Theme.of(context).textTheme.headline4!.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+            ),
+          ],
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),

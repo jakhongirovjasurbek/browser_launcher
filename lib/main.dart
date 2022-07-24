@@ -1,54 +1,88 @@
-// import 'dart:convert';
-// import 'dart:io';
-
+import 'dart:io';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:browser_launcher/core/bloc/module_bloc.dart';
+import 'package:browser_launcher/core/data/app_functions.dart';
 import 'package:browser_launcher/core/models/module_status/module_state.dart';
 import 'package:browser_launcher/core/repository/module_repository.dart';
 import 'package:browser_launcher/core/screens/access_denied_screen.dart';
 import 'package:browser_launcher/core/screens/splash_screen.dart';
 import 'package:browser_launcher/modules/browser/browser_screen.dart';
 import 'package:browser_launcher/modules/file_launchers/file_launchers.dart';
-// import 'package:convert/convert.dart';
-// import 'package:file_picker_writable/file_picker_writable.dart';
+import 'package:file_picker_writable/file_picker_writable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:logging/logging.dart';
-// import 'package:simple_json_persistence/simple_json_persistence.dart';
+import 'package:simple_json_persistence/simple_json_persistence.dart';
 
-// final _logger = Logger('main');
+class AppDataBloc {
+  final store = SimpleJsonPersistence.getForTypeWithDefault(
+    (json) => AppData.fromJson(json),
+    defaultCreator: () => AppData(files: []),
+    name: 'AppData',
+  );
+}
 
-// class AppDataBloc {
-//   final store = SimpleJsonPersistence.getForTypeWithDefault(
-//     (json) => AppData.fromJson(json),
-//     defaultCreator: () => AppData(files: []),
-//     name: 'AppData',
-//   );
-// }
+class AppData implements HasToJson {
+  AppData({required this.files});
+  final List<FileInfo> files;
 
-// class AppData implements HasToJson {
-//   AppData({required this.files});
-//   final List<FileInfo> files;
+  static AppData fromJson(Map<String, dynamic> json) => AppData(
+      files: (json['files'] as List<dynamic>)
+          .where((dynamic element) => element != null)
+          .map((dynamic e) => FileInfo.fromJson(e as Map<String, dynamic>))
+          .toList());
 
-//   static AppData fromJson(Map<String, dynamic> json) => AppData(
-//       files: (json['files'] as List<dynamic>)
-//           .where((dynamic element) => element != null)
-//           .map((dynamic e) => FileInfo.fromJson(e as Map<String, dynamic>))
-//           .toList());
+  @override
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'files': files,
+      };
 
-//   @override
-//   Map<String, dynamic> toJson() => <String, dynamic>{
-//         'files': files,
-//       };
+  AppData copyWith({required List<FileInfo> files}) => AppData(files: files);
+}
 
-//   AppData copyWith({required List<FileInfo> files}) => AppData(files: files);
-// }
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  AwesomeNotifications().initialize(
+      // set the icon to null if you want to use the default app icon
+      // 'resource://drawable/res_app_icon',
+      null,
+      [
+        NotificationChannel(
+            channelGroupKey: 'basic_channel_group',
+            channelKey: 'basic_channel',
+            channelName: 'Basic notifications',
+            channelDescription: 'Notification channel for basic tests',
+            defaultColor: const Color(0xFF9D50DD),
+            ledColor: Colors.white)
+      ],
+      // Channel groups are only visual and are not required
+      channelGroups: [
+        NotificationChannelGroup(
+            channelGroupkey: 'basic_channel_group',
+            channelGroupName: 'Basic group')
+      ],
+      debug: true);
+  final baseDirPath = await AppFunctions.getBaseAppDirectoryUrl();
+  if (baseDirPath != null) {
+    try {
+      final subscription = Directory('$baseDirPath/Download').watch();
+      subscription.listen((event) {
+        AppFunctions.createLocalNotification(changedFileInfo: event.path);
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
 
-void main() {
-  runApp(const MyApp());
+  runApp(MyApp(repository: ModuleRepository()));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final ModuleRepository _moduleRepository;
+  const MyApp({
+    required ModuleRepository repository,
+    Key? key,
+  })  : _moduleRepository = repository,
+        super(key: key);
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -58,40 +92,64 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    // final state = FilePickerWritable().init();
-    // state.registerFileOpenHandler((fileInfo, file) async {
-    //   _logger.fine('got file info. we are mounted:$mounted');
-    //   if (!mounted) {
-    //     return false;
-    //   }
-    //   await SimpleAlertDialog.readFileContentsAndShowDialog(
-    //     fileInfo,
-    //     file,
-    //     _navigator.context,
-    //     bodyTextPrefix: 'Should open file from external app.\n\n'
-    //         'fileName: ${fileInfo.uri}\n'
-    //         'uri: ${fileInfo.uri}\n\n\n',
-    //   );
-    //   return true;
-    // });
-    // state.registerUriHandler((uri) {
-    //   SimpleAlertDialog(
-    //     titleText: 'Handling Uri',
-    //     bodyText: 'Got a uri to handle: $uri',
-    //   ).show(_navigator.context);
-    //   return true;
-    // });
-    // state.registerErrorEventHandler((errorEvent) async {
-    //   _logger.fine('Handling error event, mounted: $mounted');
-    //   if (!mounted) {
-    //     return false;
-    //   }
-    // await SimpleAlertDialog(
-    //   titleText: 'Received error event',
-    //   bodyText: errorEvent.message,
-    // ).show(_navigator.context);
-    // return true;
-    // });
+
+    AwesomeNotifications()
+        .actionStream
+        .listen((ReceivedNotification receivedNotification) {
+      // showDialog(
+      //     context: _navigator.context,
+      //     builder: (_) => AlertDialog(
+      //           content: Text('$receivedNotification'),
+      //         ));
+      if (receivedNotification.body != null &&
+          receivedNotification.body!.isNotEmpty) {
+        widget._moduleRepository.intentShareController
+            .add(receivedNotification.body!);
+      }
+    });
+
+    final state = FilePickerWritable().init();
+    state.registerFileOpenHandler((fileInfo, file) async {
+      if (!mounted) {
+        return false;
+      }
+      final Map<String, dynamic> params = <String, dynamic>{
+        'uri': fileInfo.uri,
+      };
+      try {
+        final String? path = await ModuleRepository.intentPlatform
+            .invokeMethod('getIntentPath', params);
+        if (path != null && path.isNotEmpty) {
+          widget._moduleRepository.intentShareController.add(path);
+        }
+
+        if (Platform.isIOS) {
+          widget._moduleRepository.intentShareController
+              .add(path ?? 'File url is unknown');
+        }
+      } catch (e) {
+        appLogger(e);
+      }
+      return true;
+    });
+
+    state.registerUriHandler((uri) {
+      print('This has been launched');
+      if (!mounted) {
+        return false;
+      }
+      showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+                content: Text(uri.path),
+              ));
+      return true;
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   final _navigatorKey = GlobalKey<NavigatorState>();
@@ -101,7 +159,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return RepositoryProvider(
-      create: (context) => ModuleRepository(),
+      create: (context) => widget._moduleRepository,
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
@@ -156,55 +214,3 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
-
-// class SimpleAlertDialog extends StatelessWidget {
-//   const SimpleAlertDialog({Key? key, this.titleText, required this.bodyText})
-//       : super(key: key);
-//   final String? titleText;
-//   final String bodyText;
-
-//   Future<void> show(BuildContext context) =>
-//       showDialog<void>(context: context, builder: (context) => this);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return AlertDialog(
-//       scrollable: true,
-//       title: titleText == null ? null : Text(titleText!),
-//       content: Text(bodyText),
-//       actions: <Widget>[
-//         TextButton(
-//             child: const Text('Ok'),
-//             onPressed: () {
-//               Navigator.of(context).pop();
-//             }),
-//       ],
-//     );
-//   }
-
-  // static Future readFileContentsAndShowDialog(
-  //   FileInfo fi,
-  //   File file,
-  //   BuildContext context, {
-  //   String bodyTextPrefix = '',
-  // }) async {
-  //   final dataList = await file.openRead(0, 64).toList();
-  //   final data = dataList.expand((element) => element).toList();
-  //   final hexString = hex.encode(data);
-  //   final utf8String = utf8.decode(data, allowMalformed: true);
-  //   final fileContentExample = 'hexString: $hexString\n\nutf8: $utf8String';
-
-  //   // ignore: use_build_context_synchronously
-  //   await SimpleAlertDialog(
-  //     titleText: 'Read first ${data.length} bytes of file',
-  //     bodyText: '$bodyTextPrefix $fileContentExample',
-  //   ).show(context);
-  // }
-
-  // static Future showErrorDialog(Exception e, BuildContext context) async {
-  //   await SimpleAlertDialog(
-  //     titleText: 'Error',
-  //     bodyText: e.toString(),
-  //   ).show(context);
-  // }
-// }

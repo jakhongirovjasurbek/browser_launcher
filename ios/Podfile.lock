@@ -1,4 +1,6 @@
 PODS:
+  - awesome_notifications (0.0.3):
+    - Flutter
   - file_picker_writable (0.0.1):
     - Flutter
   - Flutter (1.0.0)
@@ -18,6 +20,7 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
+  - awesome_notifications (from `.symlinks/plugins/awesome_notifications/ios`)
   - file_picker_writable (from `.symlinks/plugins/file_picker_writable/ios`)
   - Flutter (from `Flutter`)
   - open_file (from `.symlinks/plugins/open_file/ios`)
@@ -29,6 +32,8 @@ DEPENDENCIES:
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/ios`)
 
 EXTERNAL SOURCES:
+  awesome_notifications:
+    :path: ".symlinks/plugins/awesome_notifications/ios"
   file_picker_writable:
     :path: ".symlinks/plugins/file_picker_writable/ios"
   Flutter:
@@ -49,6 +54,7 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/video_player_avfoundation/ios"
 
 SPEC CHECKSUMS:
+  awesome_notifications: 04530aafec8dac4635244ed4b4072f4aea6cc938
   file_picker_writable: 67959f5c516feb5121693a14eda63fcbe6cbb6dc
   Flutter: 50d75fe2f02b26cc09d224853bb45737f8b3214a
   open_file: 02eb5cb6b21264bd3a696876f5afbfb7ca4f4b7d
@@ -59,6 +65,6 @@ SPEC CHECKSUMS:
   url_launcher_ios: 839c58cdb4279282219f5e248c3321761ff3c4de
   video_player_avfoundation: e489aac24ef5cf7af82702979ed16f2a5ef84cff
 
-PODFILE CHECKSUM: cf6ecb4a549e9eb7d2f277c9b2d1e3a6e785d3fb
+PODFILE CHECKSUM: 38ff055fc7e24dcbeeb5fac7bed3b9e971cf5517
 
 COCOAPODS: 1.11.3

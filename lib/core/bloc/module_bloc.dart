@@ -15,6 +15,7 @@ class ModuleBloc extends Bloc<ModuleEvent, ModuleState> {
   final ModuleRepository _repository;
 
   late StreamSubscription<ModuleStatus> _streamSubscription;
+  late StreamSubscription<String> _intentStreamSubscription;
   ModuleBloc({required ModuleRepository repository})
       : _repository = repository,
         super(
@@ -25,6 +26,9 @@ class ModuleBloc extends Bloc<ModuleEvent, ModuleState> {
         ) {
     _streamSubscription = _repository.status.listen((status) {
       add(ModuleStatusChanged(status: status));
+    });
+    _intentStreamSubscription = _repository.intentStatus.listen((path) {
+      add(ModuleStatusChangedOnShareIntent(path: path));
     });
 
     on<ModuleStatusChanged>((event, emit) async {
@@ -72,11 +76,20 @@ class ModuleBloc extends Bloc<ModuleEvent, ModuleState> {
       emit(state.copyWith(filePath: event.name));
       event.onSuccess();
     });
+
+    on<ModuleStatusChangedOnShareIntent>((event, emit) {
+      print('This bloc fired. This is path: ${event.path}');
+      emit(state.copyWith(
+        status: ModuleStatus.fileLauncher,
+        filePath: event.path,
+      ));
+    });
   }
 
   @override
   Future<void> close() {
     _streamSubscription.cancel();
+    _intentStreamSubscription.cancel();
     return super.close();
   }
 }

@@ -23,8 +23,16 @@ class BrowserBloc extends Bloc<BrowserEvent, BrowserState> {
       try {
         AppFunctions.checkStoragePermission();
         var dirToDownloads = await AppFunctions.getBaseAppDirectoryUrl();
-        final downloadsFolder = Directory('$dirToDownloads/Download');
-
+        late Directory downloadsFolder;
+        if (Platform.isAndroid) {
+          downloadsFolder = Directory('$dirToDownloads/Download');
+        } else if (Platform.isIOS) {
+          downloadsFolder = Directory('$dirToDownloads');
+        }
+        if (await Directory(dirToDownloads!).exists()) {
+          print('This folder exists');
+          print(Directory(dirToDownloads).listSync());
+        }
         final appFolder = Directory('$dirToDownloads/BrowserLauncher');
 
         if (!(await appFolder.exists())) {
@@ -38,11 +46,19 @@ class BrowserBloc extends Bloc<BrowserEvent, BrowserState> {
         if (appFolder.listSync().isEmpty) {
           AppFunctions.checkManageStoragePermission();
           for (var downloadsFolderItem in downloadsFolder.listSync()) {
-            await File(
-              downloadsFolderItem.path,
-            ).copy(
-              '${appFolder.path}/${downloadsFolderItem.path.split(Platform.pathSeparator).last}',
-            );
+            if (!Directory(downloadsFolderItem.uri.path).existsSync()) {
+              await File(
+                downloadsFolderItem.path,
+              ).copy(
+                '${appFolder.path}/${downloadsFolderItem.path.split(Platform.pathSeparator).last}',
+              );
+            } else {
+              Directory(downloadsFolderItem.uri.path)
+                  .listSync()
+                  .forEach((element) {
+                print(element);
+              });
+            }
           }
         } else if (appFolder.listSync().length <
             downloadsFolder.listSync().length) {
@@ -59,11 +75,16 @@ class BrowserBloc extends Bloc<BrowserEvent, BrowserState> {
           for (var i = 0; i < fileNamesInDownloadFolder.length; i++) {
             if (fileNamesInAppFolder.contains(fileNamesInDownloadFolder[i])) {
             } else {
-              await File(
-                '${downloadsFolder.path}/${fileNamesInDownloadFolder[i]}',
-              ).copy(
-                '${appFolder.path}/${fileNamesInDownloadFolder[i]}',
-              );
+              if (Directory(
+                      '${downloadsFolder.path}/${fileNamesInDownloadFolder[i]}')
+                  .existsSync()) {
+              } else {
+                await File(
+                  '${downloadsFolder.path}/${fileNamesInDownloadFolder[i]}',
+                ).copy(
+                  '${appFolder.path}/${fileNamesInDownloadFolder[i]}',
+                );
+              }
             }
           }
         }

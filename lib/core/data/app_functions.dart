@@ -1,23 +1,27 @@
 import 'dart:io';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 
 class AppFunctions {
   static Future<bool> checkManageStoragePermission() async {
-    if (!(await Permission.manageExternalStorage.isGranted)) {
-      final status = await Permission.manageExternalStorage.request();
-      if (!(status.isGranted)) {
-        throw Exception('Access for storage is denied');
-      } else {
-        return true;
-      }
-    } else if (await Permission.manageExternalStorage.isRestricted) {
-      final status = await Permission.manageExternalStorage.request();
-      if (!(status.isGranted)) {
-        throw Exception('Access for storage is denied');
-      } else {
-        return true;
+    if (Platform.isAndroid) {
+      if (!(await Permission.manageExternalStorage.isGranted)) {
+        final status = await Permission.manageExternalStorage.request();
+        if (!(status.isGranted)) {
+          throw Exception('Access for storage is denied');
+        } else {
+          return true;
+        }
+      } else if (await Permission.manageExternalStorage.isRestricted) {
+        final status = await Permission.manageExternalStorage.request();
+        if (!(status.isGranted)) {
+          throw Exception('Access for storage is denied');
+        } else {
+          return true;
+        }
       }
     }
     return true;
@@ -61,4 +65,34 @@ class AppFunctions {
   }
 
   static Future<void> createAppLocalFolder() async {}
+
+  static Future<void> createLocalNotification({String? changedFileInfo}) async {
+    final isAllowed = await AwesomeNotifications().isNotificationAllowed();
+
+    if (isAllowed) {
+      // This is just a basic example. For real apps, you must show some
+      // friendly dialog box before call the request method.
+      // This is very important to not harm the user experience
+      AwesomeNotifications().requestPermissionToSendNotifications();
+      AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: 10,
+          channelKey: 'basic_channel',
+          title: 'Browser & Launcher',
+          body: changedFileInfo,
+          autoDismissible: false,
+          category: NotificationCategory.Recommendation,
+          criticalAlert: true,
+          wakeUpScreen: true,
+          locked: true,
+        ),
+      );
+    }
+  }
+}
+
+void appLogger(Object object) {
+  if (kDebugMode) {
+    print(object);
+  }
 }

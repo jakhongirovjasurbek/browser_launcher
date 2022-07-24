@@ -13,4 +13,32 @@ class LauncherFunctions {
     // }
     return LauncherFileTypes.other;
   }
+
+  static String getFileName({required String absolutePath}) {
+    var name = '';
+    final fileName =
+        absolutePath.split('/')[absolutePath.split('/').length - 1];
+    final fileNameArrow = fileName.split('.');
+    for (var i = 0; i < fileNameArrow.length; i++) {
+      if (i != fileNameArrow.length - 1) {
+        name += fileNameArrow[i];
+      }
+    }
+
+    return name;
+  }
+
+  static String getFileExtention({required String absolutePath}) {
+    var extention = '';
+    final fileName =
+        absolutePath.split('/')[absolutePath.split('/').length - 1];
+    final fileNameArrow = fileName.split('.');
+    for (var i = 0; i < fileNameArrow.length; i++) {
+      if (i == fileNameArrow.length - 1) {
+        extention = fileNameArrow[i];
+      }
+    }
+
+    return extention;
+  }
 }

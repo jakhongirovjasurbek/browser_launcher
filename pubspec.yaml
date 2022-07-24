@@ -49,6 +49,8 @@ dependencies:
   logging: ^1.0.2
   logging_appenders: ^1.0.0
   convert: ^3.0.2
+  receive_sharing_intent: ^1.4.5
+  awesome_notifications: ^0.6.21
   # flutter_absolute_path:
   #   git:
   #     url: https://github.com/jakhongirovjasurbek/flutter_absolute_path.git

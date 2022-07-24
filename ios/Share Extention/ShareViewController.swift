@@ -4,7 +4,7 @@ import MobileCoreServices
 import Photos
 
 class ShareViewController: SLComposeServiceViewController {
-    let hostAppBundleIdentifier = "com.example.browser_launcher"
+    let hostAppBundleIdentifier = "com.example.browserLauncher"
     let sharedKey = "ShareKey"
     var sharedMedia: [SharedMediaFile] = []
     var sharedText: [String] = []

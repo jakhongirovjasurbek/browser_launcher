@@ -1,4 +1,5 @@
 import 'package:browser_launcher/core/bloc/module_bloc.dart';
+import 'package:browser_launcher/core/data/app_functions.dart';
 import 'package:browser_launcher/core/widgets/popus/snackbars.dart';
 import 'package:browser_launcher/modules/browser/core/bloc/browser_bloc.dart';
 import 'package:browser_launcher/modules/browser/features/directories/presentation/browser_directories.dart';
@@ -15,27 +16,9 @@ class Browser extends StatefulWidget {
 }
 
 class _BrowserState extends State<Browser> with WidgetsBindingObserver {
-  AppLifecycleState? _notification;
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      print('Lifecycle has changed in browser');
-      // context.read<ModuleBloc>().add(
-      //       GetModuleStatus(onSuccess: () {}, onFailure: (_) {}),
-      //     );
-    });
-  }
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
   }
 
   @override
@@ -48,6 +31,12 @@ class _BrowserState extends State<Browser> with WidgetsBindingObserver {
               showErrorSnackBar(context, message: message);
             })),
       child: Scaffold(
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            AppFunctions.createLocalNotification();
+          },
+          child: const Icon(Icons.notifications),
+        ),
         appBar: AppBar(
           title: Text(
             'Browser ${context.read<ModuleBloc>().state.filePath}',

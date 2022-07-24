@@ -27,6 +27,7 @@ import java.util.*
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "sample.flutter.dev/path"
+    private val INTENT_CHANNEL = "sample.flutter.dev/intentPath"
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -57,6 +58,23 @@ class MainActivity: FlutterActivity() {
                 result.notImplemented()
             }
         }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, INTENT_CHANNEL).setMethodCallHandler {
+          call, result -> if(call.method == "getIntentPath"){
+            val uriString = call.argument<Any>("uri") as String
+            val uri = Uri.parse(uriString)
+            val filePath = getIntentPathOnShare(this.context, uri)
+            if(filePath != null){
+
+              result.success(filePath)
+            } else {
+              result.error("UNAVAILABLE", "File path not available", null)
+            }
+          }
+          else {
+              result.notImplemented()
+          }
+      }
     }
 
     private fun getBatteryLevel(): Int {
@@ -158,6 +176,57 @@ class MainActivity: FlutterActivity() {
       return null
     }
     
+}
+
+private fun getIntentPathOnShare(context: Context, uri: Uri): String? {
+
+  val isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
+
+  // DocumentProvider
+  if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+      // ExternalStorageProvider
+      if ("com.android.externalstorage.documents" == uri.authority) {
+          val docId = DocumentsContract.getDocumentId(uri)
+          val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+          val type = split[0]
+
+          if ("primary".equals(type, ignoreCase = true)) {
+              return Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+          }
+
+          // TODO handle non-primary volumes
+      } else if ("com.android.providers.downloads.documents" == uri.authority) {
+
+          val id = DocumentsContract.getDocumentId(uri)
+          val contentUri = ContentUris.withAppendedId(
+                  Uri.parse("content://downloads/public_downloads"), java.lang.Long.valueOf(id))
+
+          return getDataColumn(context, contentUri, null, null)
+      } else if ("com.android.providers.media.documents" == uri.authority) {
+          val docId = DocumentsContract.getDocumentId(uri)
+          val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+          val type = split[0]
+
+          var contentUri: Uri? = null
+          when (type) {
+              "image" -> contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+              "video" -> contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+              "audio" -> contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+          }
+
+          if (contentUri == null) return null
+
+          val selection = "_id=?"
+          val selectionArgs = arrayOf(split[1])
+          return getDataColumn(context, contentUri, selection, selectionArgs)
+      }// MediaProvider
+      // DownloadsProvider
+  } else if ("content".equals(uri.scheme, ignoreCase = true)) {
+      return getDataColumn(context, uri, null, null)
+  }
+
+  return uri.path
+  
 }
 fun getDataColumn(context: Context, uri: Uri?, selection: String?, selectionArgs: Array<String>?): String? {
   var cursor: Cursor? = null

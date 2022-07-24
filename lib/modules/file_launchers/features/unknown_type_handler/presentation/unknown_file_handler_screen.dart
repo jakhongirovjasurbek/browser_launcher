@@ -18,7 +18,7 @@ class UnknownFileHandlerScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Oups.. \nLooks like we cannot open this file yet!\nFile name is: ${path.split(Platform.pathSeparator).last}',
+              'File name is: ${path.split(Platform.pathSeparator).last}',
               style: Theme.of(context).textTheme.headline1!.copyWith(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
